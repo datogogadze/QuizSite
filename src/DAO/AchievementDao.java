@@ -88,9 +88,8 @@ public class AchievementDao extends TableNames {
 			ResultSet rs = upd.executeQuery(query);
 			if (rs.next()) {
 				String achievName = getAchieveNameByType(typeID);
-				int achievID = rs.getInt("USER_ACHIEV_ID");
 				String finishDate = rs.getString("FINISH_DATE");
-				return (new Achievement(achievName, UserID, achievID, finishDate));
+				return (new Achievement(achievName, UserID, rs.getInt("USER_ACHIEV_ID"), finishDate));
 			}
 		}catch (SQLException e) {
 			e.printStackTrace();
