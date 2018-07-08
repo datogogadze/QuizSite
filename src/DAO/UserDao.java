@@ -1,7 +1,9 @@
 package DAO;
 
+import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -21,10 +23,10 @@ public class UserDao extends TableNames {
 			Class.forName("com.mysql.jdbc.Driver"); // Called to just initialize JDBC driver
 			con = DriverManager.getConnection(MyDBInfo.JDBC_DATABASE_URL, // Connect to database
 					MyDBInfo.MYSQL_USERNAME, MyDBInfo.MYSQL_PASSWORD);
-			upd = new DBupdate(con);
+
 			Statement stmt = con.createStatement();
 			stmt.execute("USE " + MyDBInfo.MYSQL_DATABASE_NAME);
-
+			upd = new DBupdate(con);
 		} catch (ClassNotFoundException e) {
 			// No com.mysql.jdbc.Driver class found in classpath
 			e.printStackTrace();
@@ -38,10 +40,11 @@ public class UserDao extends TableNames {
 	// searches for username in table USERINFO,returns true or false accordingly
 	public boolean searchUser(String userName) {
 		String query = "Select USER_NAME from " + USER_INFO_TABLE + " where USER_NAME = '" + userName + "'";
+		ResultSet set;
 		try {
-			ResultSet set;
 			set = upd.executeQuery(query);
-			if (getRowNumbers(set) == 0)
+			int result = numberOfRows(set);
+			if (result == 0)
 				return false;
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -49,37 +52,13 @@ public class UserDao extends TableNames {
 		}
 		return true;
 	}
-	public ArrayList<User> getAllUsers(){
-		ArrayList<User> all = new ArrayList<User>();
-		String query = "SELECT * FROM " + USER_INFO_TABLE;
+
+	public boolean searchMail(String mail) {
+		String query = "Select USER_NAME from " + USER_INFO_TABLE + " where E_MAIL = '" + mail + "'";
 		ResultSet set;
 		try {
 			set = upd.executeQuery(query);
-			while (set.next()) {
-				int id = set.getInt(1);
-				String fname = set.getString(3);
-				String lname = set.getString(4);
-				String uname = set.getString(2);
-				String mail = set.getString(5);
-				String pass = set.getString(6);
-				User user = new User(fname, lname, uname,pass, mail );
-				user.setType(set.getInt(7));
-				user.setId(id);
-				all.add(user);
-			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return all;
-	}
-	public boolean searchMail(String mail) {
-		String query = "Select USER_NAME from " + USER_INFO_TABLE + " where E_MAIL = '" + mail + "'";
-		try {
-			ResultSet set = upd.executeQuery(query);
-			int result;
-			result = getRowNumbers(set);
+			int result = numberOfRows(set);
 			if (result == 0)
 				return false;
 		} catch (SQLException e) {
@@ -112,71 +91,66 @@ public class UserDao extends TableNames {
 	public String getPassword(String userName) {
 		String password = "";
 		String query = "Select PASSWORD_HASH from " + USER_INFO_TABLE + " where USER_NAME = '" + userName + "'";
-		ResultSet set;
 		try {
-			set = upd.executeQuery(query);
-			if (set.next())
+			ResultSet set = upd.executeQuery(query);
+			if (set.next()) {
 				password = set.getString(1);
-		} catch (SQLException e1) {
+			}
+		} catch (SQLException e) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			e.printStackTrace();
 		}
 		return password;
 	}
 
 	public int getUserId(String username) {
-		int userid = -1;
 		String query = "Select USER_ID from " + USER_INFO_TABLE + " where USER_NAME = '" + username + "'";
-		ResultSet rs;
+		int userid = -1;
 		try {
-			rs = upd.executeQuery(query);
+			ResultSet rs = upd.executeQuery(query);
 			if (rs.next()) {
 				userid = rs.getInt("USER_ID");
 			}
-		} catch (SQLException e1) {
+		} catch (SQLException e) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			e.printStackTrace();
 		}
 		return userid;
-
 	}
 
 	public ArrayList<String> getFriends(int userID) {
 		ArrayList<String> friends = new ArrayList<String>();
 		String query = "Select * from " + FRIENDS_TABLE + " where SENDER_ID = " + userID
 				+ " and REQUEST_STATUS = 'CONFIRMED'";
-		ResultSet rs;
+
 		try {
-			rs = upd.executeQuery(query);
+			ResultSet rs = upd.executeQuery(query);
 			while (rs.next()) {
 				int recieverID = rs.getInt("RECIEVER_ID");
 				friends.add(getUsernameByID(recieverID));
 			}
-		} catch (SQLException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 		String query2 = "Select * from " + FRIENDS_TABLE + " where RECIEVER_ID = " + userID
 				+ " and REQUEST_STATUS = 'CONFIRMED'";
-		ResultSet rs2;
 		try {
-			rs2 = upd.executeQuery(query2);
+			ResultSet rs2 = upd.executeQuery(query2);
 			while (rs2.next()) {
 				int sender = rs2.getInt("SENDER_ID");
 				friends.add(getUsernameByID(sender));
 			}
-		} catch (SQLException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
+
 		return friends;
 	}
 
 	public User getUserByID(int userID) {
 		String query = "SELECT * FROM " + USER_INFO_TABLE + " WHERE USER_ID = " + userID;
-		ResultSet rs;
 		try {
-			rs = upd.executeQuery(query);
+			ResultSet rs = upd.executeQuery(query);
 			if (rs.next()) {
 				String username = rs.getString("USER_NAME");
 				String firstname = rs.getString("FIRST_NAME");
@@ -185,14 +159,15 @@ public class UserDao extends TableNames {
 				String pass = rs.getString("PASSWORD_HASH");
 				int type = rs.getInt("USER_TYPE");
 				User user = new User(firstname, lastname, username, pass, email, type);
-				user.setId(rs.getInt("USER_ID"));
+				user.setUserId(rs.getInt("USER_ID"));
 				return user;
+
 			}
-		} catch (SQLException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 		return null;
+
 	}
 
 	public String getUsernameByID(int userID) {
@@ -210,24 +185,68 @@ public class UserDao extends TableNames {
 		return null;
 	}
 
-//	public boolean isAdmin(int userID) {
-//		String query = "SELECT USER_TYPE FROM WEB_USERS WHERE USER_ID = " + userID;
-//		ResultSet rs;
-//		try {
-//			rs = upd.executeQuery(query);
-//			if (rs.next()) {
-//				int type = rs.getInt("USER_TYPE");
-//				return type == 1;
-//			}
-//		} catch (SQLException e1) {
-//			// TODO Auto-generated catch block
-//			e1.printStackTrace();
-//		}
-//		return false;
-//	}
+	public void updateAdminStatus(int type, int userID) {
+		String query = "UPDATE " + USER_INFO_TABLE + " SET USER_TYPE = " + type + " WHERE USER_ID = " + userID;
+		try {
+			upd.executeUpdate(query);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
+	public void deleteUser(int userID) {
+		String query = "DELETE FROM WEB_USERS WHERE USER_ID = " + userID;
+		String query2 = "DELETE FROM FRIENDS WHERE SENDER_ID = " + userID;
+		String query3 = "DELETE FROM FRIENDS WHERE RECIEVER_ID = " + userID;
+		try {
+			upd.executeUpdate(query);
+			upd.executeUpdate(query2);
+			upd.executeUpdate(query3);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
-	public void closeCon() throws SQLException {
-		con.close();
+	public ArrayList<User> getAllUsers() {
+		ArrayList<User> res = new ArrayList<User>();
+		String query = "SELECT * FROM " + USER_INFO_TABLE;
+		try {
+			ResultSet rs = upd.executeQuery(query);
+			while (rs.next()) {
+				User cur = new User(rs.getString(3), rs.getString(4), rs.getString(2), rs.getString(6), rs.getString(5),
+						rs.getInt(7));
+				cur.setUserId(rs.getInt(1));
+				res.add(cur);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return res;
+	}
+
+	public int numberOfRows(ResultSet set) {
+		int numRows = 0;
+		if (set == null) {
+			return numRows;
+		}
+		try {
+			set.last();
+			numRows = set.getRow();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return numRows;
+	}
+	public void closeCon() {
+		try {
+			con.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

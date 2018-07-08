@@ -6,21 +6,22 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+
 import DBupdate.DBupdate;
 import Model.MyDBInfo;
 
 public class FriendDao extends TableNames {
-	Connection con;
+	private Connection con;
 	private DBupdate upd;
 	public FriendDao() {
 		try {
 			Class.forName("com.mysql.jdbc.Driver"); // Called to just initialize JDBC driver
 			con = DriverManager.getConnection(MyDBInfo.JDBC_DATABASE_URL, // Connect to database
 					MyDBInfo.MYSQL_USERNAME, MyDBInfo.MYSQL_PASSWORD);
-			upd = new DBupdate(con);
+
 			Statement stmt = con.createStatement();
 			stmt.execute("USE " + MyDBInfo.MYSQL_DATABASE_NAME);
-
+			upd = new DBupdate(con);
 		} catch (ClassNotFoundException e) {
 			// No com.mysql.jdbc.Driver class found in classpath
 			e.printStackTrace();
@@ -32,47 +33,38 @@ public class FriendDao extends TableNames {
 	}
 
 	public void addFriend(int senderID, int recieverID) throws SQLException {
-		if (senderID == recieverID)
+		if (senderID == recieverID) {
 			return;
-		String q = "SELECT * FROM " + FRIENDS_TABLE + " WHERE SENDER_ID = " + senderID;
-		ResultSet rs = upd.executeQuery(q);
-		while (rs.next()) {
-			if (rs.getInt("RECIEVER_ID") == recieverID)
-				return;
 		}
-		q = "SELECT * FROM " + FRIENDS_TABLE + " WHERE RECIEVER_ID = " + senderID;
-		rs = upd.executeQuery(q);
+		String query1 = "SELECT * FROM " + FRIENDS_TABLE + " WHERE SENDER_ID = " + senderID;
+		ResultSet rs = upd.executeQuery(query1);
+		while (rs.next()) {
+			if (rs.getInt("RECIEVER_ID") == recieverID) {
+				return;
+			}
+		}
+		String query2 = "SELECT * FROM " + FRIENDS_TABLE + " WHERE RECIEVER_ID = " + senderID;
+		rs = upd.executeQuery(query2);
 		while (rs.next()) {
 			if (rs.getInt("SENDER_ID") == recieverID) {
 				if (rs.getString("REQUEST_STATUS").equals("PENDING")) {
 					acceptRequest(recieverID, senderID);
 					return;
-				} else
+				} else {
 					return;
+				}
 			}
 		}
-		String query = "INSERT INTO " + FRIENDS_TABLE + " (SENDER_ID, RECIEVER_ID, REQUEST_STATUS, SEND_DATE) values"
+		String query3 = "INSERT INTO " + FRIENDS_TABLE + " (SENDER_ID, RECIEVER_ID, REQUEST_STATUS, SEND_DATE) values"
 				+ " (" + senderID + "," + recieverID + "," + "'PENDING', now())";
-		upd.executeUpdate(query);
+		upd.executeUpdate(query3);
+
 	}
 
-	public void acceptRequest(int sender, int receiver) {
+	public void acceptRequest(int recieverId, int senderId) {
 		String query = "UPDATE " + FRIENDS_TABLE
-				+ " SET REQUEST_STATUS = 'CONFIRMED', CONFIRM_DATE = now() WHERE SENDER_ID = " + sender
-				+ " AND RECIEVER_ID = " + receiver;
-
-		try {
-			upd.executeUpdate(query);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	public void acceptRequest(int friend_request_id) {
-		String query = "UPDATE " + FRIENDS_TABLE
-				+ " SET REQUEST_STATUS = 'CONFIRMED', CONFIRM_DATE = now() WHERE FRIEND_REQUEST_ID = "
-				+ friend_request_id;
+				+ " SET REQUEST_STATUS = 'CONFIRMED', CONFIRM_DATE = now() WHERE RECIEVER_ID = " + recieverId
+				+ " AND SENDER_ID = " + senderId;
 		try {
 			upd.executeUpdate(query);
 		} catch (SQLException e) {
@@ -83,15 +75,10 @@ public class FriendDao extends TableNames {
 	}
 
 	public void deleteFriendship(int id1, int id2) {
-		String query = "DELETE FROM " + FRIENDS_TABLE + " SENDER_ID = " + id1 + "AND RECEIVER_ID = " + id2;
+		String query = "DELETE FROM " + FRIENDS_TABLE + " WHERE SENDER_ID = " + id1 + "AND RECIEVER_ID = " + id2;
 		try {
 			upd.executeUpdate(query);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		query = "DELETE FROM " + FRIENDS_TABLE + " SENDER_ID = " + id2 + "AND RECEIVER_ID = " + id1;
-		try {
+			query = "DELETE FROM " + FRIENDS_TABLE + " WHERE SENDER_ID = " + id1 + "AND RECIEVER_ID = " + id2;
 			upd.executeUpdate(query);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -99,8 +86,27 @@ public class FriendDao extends TableNames {
 		}
 	}
 
-	public void closeCon() throws SQLException {
-		con.close();
+	public ArrayList<Integer> getRequests(int useriD) {
+		String query = "SELECT 	SENDER_ID FROM FRIENDS WHERE RECIEVER_ID = " + useriD
+				+ " AND REQUEST_STATUS = 'PENDING'";	
+		ArrayList<Integer> senders = new ArrayList<Integer>();
+		try {
+			ResultSet rs = upd.executeQuery(query);
+			while (rs.next()) {
+				senders.add(rs.getInt("SENDER_ID"));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return senders;
 	}
-
+	
+	public void closeCon() {
+		try {
+			con.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }

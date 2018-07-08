@@ -2,6 +2,7 @@ package DAO;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -15,15 +16,16 @@ public class AnswerDao extends TableNames {
 
 	private Connection con;
 	private DBupdate upd;
+
 	public AnswerDao() {
 		try {
 			Class.forName("com.mysql.jdbc.Driver"); // Called to just initialize JDBC driver
 			con = DriverManager.getConnection(MyDBInfo.JDBC_DATABASE_URL, // Connect to database
 					MyDBInfo.MYSQL_USERNAME, MyDBInfo.MYSQL_PASSWORD);
-			upd = new DBupdate(con);
+
 			Statement stmt = con.createStatement();
 			stmt.execute("USE " + MyDBInfo.MYSQL_DATABASE_NAME);
-
+			upd = new DBupdate(con);
 		} catch (ClassNotFoundException e) {
 			// No com.mysql.jdbc.Driver class found in classpath
 			e.printStackTrace();
@@ -50,9 +52,8 @@ public class AnswerDao extends TableNames {
 	public ArrayList<Answer> getAllAnswers(int questionId) {
 		ArrayList<Answer> answers = new ArrayList<Answer>();
 		String query = "select * from " + ANSWERS_TABLE + " where QUESTION_ID = " + questionId;
-		ResultSet temp;
 		try {
-			temp = upd.executeQuery(query);
+			ResultSet temp = upd.executeQuery(query);
 			while (temp.next()) {
 				int id = temp.getInt("ANSWER_ID");
 				int question = temp.getInt("QUESTION_ID");
@@ -70,8 +71,40 @@ public class AnswerDao extends TableNames {
 		return answers;
 	}
 
-
-	public void closeCon() throws SQLException {
-		con.close();
+	public int getAnswerId(int questionId, String answer) {
+		String query = "select ANSWER_ID from " + ANSWERS_TABLE + " where QUESTION_ID = " + questionId
+				+ " and POSSIBLE_ANSWER = '" + answer + "'";
+		int id = 0;
+		try {
+			ResultSet rs = upd.executeQuery(query);
+			rs.next();
+			id = rs.getInt("QUESTION_ID");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return id;
 	}
+
+	public int getNextIndex() {
+		String query = "SELECT * FROM ";
+		query += ANSWERS_TABLE + " WHERE ANSWER_ID = (SELECT MAX(ANSWER_ID) FROM  " + ANSWERS_TABLE + ")";
+		try {
+			ResultSet rs = upd.executeQuery(query);
+			if (rs.next())
+				return rs.getInt(1);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return 1;
+	}
+	public void closeCon() {
+		try {
+			con.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 }
