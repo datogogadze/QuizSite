@@ -80,7 +80,7 @@ public class answerQuestionServlet extends HttpServlet {
 			DoneQuiz don = new DoneQuiz(usr.getId(), quizid, score, dat.toString(), (int)((dat.getTime() - startdate.getTime())/1000) );
 			complete.insertCompletedQuiz(don);
 			if (complete.getCompleteQuizes(usr.getId()).size() >=2) {
-				usr.addAchievement(new Achievement("Quiz Machine", usr.getId(), 4, dat.toString()));
+				usr.addAchievement(new Achievement("Quiz Machine", usr.getId()));
 			}
 			disp = request.getRequestDispatcher("doneQuiz.jsp?"+quizid);
 			disp.forward(request, response);

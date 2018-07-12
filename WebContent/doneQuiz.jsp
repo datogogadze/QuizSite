@@ -17,7 +17,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>Insert title here</title>
+<title>Quiz score.</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet"
 	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -34,13 +34,13 @@
 				int type = user.getType();
 			%>
 			<li class="active"><a href="mainPage.jsp">Home</a></li>
-			<li><a href="createquiz.html">Create a quiz</a></li>
-			<li><a href="takeAQuiz.jsp">Take a quiz</a></li>
+			<li><a href="createQuiz.jsp">Create a quiz</a></li>
+			<li><a href="takeQuiz.jsp">Take a quiz</a></li>
 			<%
 				if (type == 1) {
 			%>
-			<li><a href="manageQuiz.jsp">Manage quizes</a></li>
-			<li><a href="manageUser.jsp">Manage Users</a></li>
+			<li><a href="manageQuizes.jsp">Manage quizes</a></li>
+			<li><a href="manageUsers.jsp">Manage Users</a></li>
 			<%
 				}
 			%>

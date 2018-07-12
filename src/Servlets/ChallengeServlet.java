@@ -48,7 +48,7 @@ public class ChallengeServlet extends HttpServlet {
 		String friend = request.getParameter("select");
 		int id2 = ud.getUserId(friend);
 		String quizid = request.getParameter("quizid");
-		cd.addChallangeInDB(id1, id2, quizid);
+		cd.addChallangeInDB(id1, id2, Integer.parseInt(quizid));
 		RequestDispatcher disp = request.getRequestDispatcher("quizDescription.jsp?quizId="+quizid);
 		disp.forward(request, response);
 		doGet(request, response);

@@ -212,13 +212,15 @@
 											String link = "AcceptServlet?senderId=" + arrr.get(i);
 									%>
 									<tr>
-										<td><%=pr.getUserByID(arrr.get(i))%></td>
+										<td><%=pr.getUsernameByID(arrr.get(i))%></td>
 										<td><a href="<%=link%>">ACCEPT FRIEND REQUEST</a></td>
 
 									</tr>
 									<%
 										}
 										for (int i = 0; i < challenges.size(); i++) {
+											if(qd.getQuiz(challenges.get(i).getQuizId()) == null)
+												continue;
 											String quizLink = "AcceptChallengeServlet?quizid=" + challenges.get(i).getQuizId() + "&senderId=" + challenges.get(i).getSenderID();
 									%>
 									<tr>
@@ -341,8 +343,11 @@
 
 										for (int i = bla.size()-1; i >= 0; i--) {
 											int id = bla.get(i).getQuizId();
+											if(qd.getQuiz(id) == null)
+												continue;
 											String quizName = qd.getQuiz(id).getQuizName();
-											String quizPage = "quizDescription.jsp?id=" + bla.get(i).getQuizId();
+											String quizPage = "quizDescription.jsp?quizid=" + bla.get(i).getQuizId();
+											
 									%>
 									<tr>
 										<td><%=bla.size()-i%></td>

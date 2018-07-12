@@ -92,7 +92,7 @@ public class AnswerDao extends TableNames {
 		try {
 			ResultSet rs = upd.executeQuery(query);
 			if (rs.next())
-				return rs.getInt(1);
+				return rs.getInt(1)+1;
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
