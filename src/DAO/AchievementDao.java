@@ -1,6 +1,8 @@
 package DAO;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -10,19 +12,20 @@ import Achievement.Achievement;
 import DBupdate.DBupdate;
 import Model.MyDBInfo;
 
-
 public class AchievementDao extends TableNames {
+
 	private Connection con;
 	private DBupdate upd;
+
 	public AchievementDao() {
 		try {
 			Class.forName("com.mysql.jdbc.Driver"); // Called to just initialize JDBC driver
 			con = DriverManager.getConnection(MyDBInfo.JDBC_DATABASE_URL, // Connect to database
 					MyDBInfo.MYSQL_USERNAME, MyDBInfo.MYSQL_PASSWORD);
-			upd = new DBupdate(con);
+
 			Statement stmt = con.createStatement();
 			stmt.execute("USE " + MyDBInfo.MYSQL_DATABASE_NAME);
-
+			upd = new DBupdate(con);
 		} catch (ClassNotFoundException e) {
 			// No com.mysql.jdbc.Driver class found in classpath
 			e.printStackTrace();
@@ -44,7 +47,9 @@ public class AchievementDao extends TableNames {
 				int achievTypeID = rs.getInt("ACHIEV_TYPE_ID");
 				String achieveDate = rs.getString("FINISH_DATE");
 				String achievementName = getAchieveNameByType(achievTypeID);
-				Achievement achiev = new Achievement(achievementName, userID, userAchievID,achieveDate);
+				Achievement achiev = new Achievement(achievementName, userID);
+				achiev.setAchievementId(userAchievID);
+				achiev.setFinishTime(achieveDate);
 				achieves.add(achiev);
 			}
 		} catch (SQLException e) {
@@ -67,17 +72,19 @@ public class AchievementDao extends TableNames {
 		}
 		return "Unkown Achieve Type";
 	}
+
 	public int getAchievementIDbyName(String name) {
-		String query = "SELECT ACHIEVMENT_TYPE_ID FROM " + ACHIEVMENT_TYPE_TABLE + " WHERE ACHIEVMENT_TYPE_DESC = '" + name + "'";
+		String query = "SELECT ACHIEVMENT_TYPE_ID FROM " + ACHIEVMENT_TYPE_TABLE + " WHERE ACHIEVMENT_TYPE_DESC = '"
+				+ name + "'";
 		try {
 			ResultSet rs = upd.executeQuery(query);
 			if (rs.next()) {
-				return rs.getInt("ACHIEVMENT_TYPE_ID");
+				return rs.getInt(1);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+
 		return 0;
 	}
 
@@ -88,17 +95,22 @@ public class AchievementDao extends TableNames {
 			ResultSet rs = upd.executeQuery(query);
 			if (rs.next()) {
 				String achievName = getAchieveNameByType(typeID);
+				int achievID = rs.getInt("USER_ACHIEV_ID");
 				String finishDate = rs.getString("FINISH_DATE");
-				return (new Achievement(achievName, UserID, rs.getInt("USER_ACHIEV_ID"), finishDate));
+				Achievement ach = new Achievement(achievName, UserID);
+				ach.setAchievementId(achievID);
+				ach.setFinishTime(finishDate);
+				return (ach);
 			}
-		}catch (SQLException e) {
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
-	
+
 	public void addAchievement(Achievement achiev) {
-		String querySelect = "SELECT * FROM "+ ACHIEVMENTS_TABLE +" WHERE USER_ID =" + achiev.getUserID() +" AND ACHIEV_TYPE_ID = "+achiev.getAchievementID();
+		String querySelect = "SELECT * FROM " + ACHIEVMENTS_TABLE + " WHERE USER_ID =" + achiev.getUserID()
+				+ " AND ACHIEV_TYPE_ID = " + getAchievementIDbyName(achiev.getAchievementName());
 		try {
 			ResultSet rs = upd.executeQuery(querySelect);
 			if (rs.next()) {
@@ -108,8 +120,9 @@ public class AchievementDao extends TableNames {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		String query = "INSERT INTO " + ACHIEVMENTS_TABLE + " (USER_ID,ACHIEV_TYPE_ID,FINISH_DATE)  VALUES ("
-				+achiev.getUserID() + "," + getAchievementIDbyName(achiev.getAchievementName()) + ", now())";
+		String query = "INSERT INTO " + ACHIEVMENTS_TABLE + " (USER_ID,ACHIEV_TYPE_ID,FINISH_DATE) VALUES ("
+				+ achiev.getUserID() + "," + getAchievementIDbyName(achiev.getAchievementName()) + "," + "now()" + ")";
+
 		try {
 			upd.executeUpdate(query);
 		} catch (SQLException e) {
@@ -117,7 +130,14 @@ public class AchievementDao extends TableNames {
 			e.printStackTrace();
 		}
 	}
-	public void closeCon() throws SQLException {
-		con.close();
+
+	public void closeCon() {
+		try {
+			con.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
+
 }
