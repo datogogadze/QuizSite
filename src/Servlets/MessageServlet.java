@@ -1,0 +1,56 @@
+package Servlets;
+
+import java.io.IOException;
+import java.sql.SQLException;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import DAO.MessageDao;
+import User.User;
+
+/**
+ * Servlet implementation class MessageServlet
+ */
+@WebServlet("/MessageServlet")
+public class MessageServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public MessageServlet() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		response.getWriter().append("Served at: ").append(request.getContextPath());
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		MessageDao md = new MessageDao();
+		User us = (User) request.getSession().getAttribute("user");
+		int id1 = us.getId();
+		System.out.println(id1);
+		User us2 =  (User) request.getSession().getAttribute("foundUser");
+		int id2 = us2.getId();
+		System.out.println(id2);
+		md.addNote(id1, id2, request.getParameter("message"));
+		RequestDispatcher disp = request.getRequestDispatcher("foundUser.jsp");
+		disp.forward(request, response);
+		doGet(request, response);
+	}
+
+}
