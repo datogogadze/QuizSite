@@ -2,3 +2,8 @@
 /AnswerQuestionServletOnePage.class
 /LoginServlet.class
 /RegistrationServlet.class
+/CreateQuizServlet.class
+/SearchServlet.class
+/MessageServlet.class
+/answerQuestionServlet.class
+/AcceptServlet.class
