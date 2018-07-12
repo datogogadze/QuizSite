@@ -7,3 +7,7 @@
 /MessageServlet.class
 /answerQuestionServlet.class
 /AcceptServlet.class
+/DeleteQuizServlet.class
+/UserModifyServlet.class
+/AddServlet.class
+/ChallengeServlet.class
