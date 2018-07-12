@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import DBupdate.DBupdate;
 import Model.MyDBInfo;
@@ -35,31 +36,26 @@ public class DoneQuizDao extends TableNames {
 		}
 	}
 
-	public ArrayList<DoneQuiz> getTop10(int userID, int quizID) {
-		ArrayList<DoneQuiz> compQuizes = new ArrayList<DoneQuiz>();
-		String query = "SELECT * FROM " + COMPLETE_QUIZ_ID + " WHERE QUIZ_ID  = " + quizID + " AND USER_ID = " + userID
-				+ " ORDER BY USER_SCORE DESC, SPENT_TIME_SECONDS LIMIT 10";	
+	public HashMap<Integer, Integer> getTop10() {
+		HashMap<Integer, Integer>  compQuizes = new HashMap<Integer, Integer> ();
+		String query = "SELECT QUIZ_ID, count(*) FROM " + COMPLETE_QUIZ_ID
+				+ " group by(quiz_id) order by count(*) desc limit 10";
 		try {
 			ResultSet rs = upd.executeQuery(query);
 			while (rs.next()) {
-				String completeQuizID = rs.getString("COMPLETE_QUIZ_ID");
-				int spentTime = rs.getInt("SPENT_TIME_SECONDS");
-				int userScore = rs.getInt("USER_SCORE");
-				String finishDate = rs.getString("FINISH_DATE");
-				DoneQuiz q = new DoneQuiz(userID, quizID, userScore, finishDate,  spentTime);
-				
-				compQuizes.add(q);
-				
+				int completeQuizID = rs.getInt(1);
+				int count = rs.getInt(2);
+				compQuizes.put(completeQuizID, count);
 			}
-		}catch (SQLException e) {
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return compQuizes;
 	}
-	
+
 	public ArrayList<DoneQuiz> getTop10Leaderboard(int quizID) {
 		ArrayList<DoneQuiz> compQuizes = new ArrayList<DoneQuiz>();
-		String query = "SELECT * FROM " + COMPLETE_QUIZ_ID + " WHERE QUIZ_ID  = " + quizID 
+		String query = "SELECT * FROM " + COMPLETE_QUIZ_ID + " WHERE QUIZ_ID  = " + quizID
 				+ " ORDER BY USER_SCORE DESC, SPENT_TIME_SECONDS LIMIT 10";
 		try {
 			ResultSet rs = upd.executeQuery(query);
@@ -70,63 +66,65 @@ public class DoneQuizDao extends TableNames {
 				int userScore = rs.getInt("USER_SCORE");
 				String finishDate = rs.getString("FINISH_DATE");
 				DoneQuiz q = new DoneQuiz(userID, quizID, userScore, finishDate, spentTime);
-				
+
 				compQuizes.add(q);
-				
+
 			}
-		}catch (SQLException e) {
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return compQuizes;
 	}
-	
+
 	public ArrayList<DoneQuiz> getLast(int userID) {
 		ArrayList<DoneQuiz> compQuizes = new ArrayList<DoneQuiz>();
 		String query = "SELECT * FROM " + COMPLETE_QUIZ_ID + " WHERE USER_ID = " + userID
-				+ " ORDER BY FINISH_DATE DESC";		
+				+ " ORDER BY FINISH_DATE DESC";
 		try {
 			ResultSet rs = upd.executeQuery(query);
 			while (rs.next()) {
-		//		String completeQuizID = rs.getString("COMPLETE_QUIZ_ID");
+				// String completeQuizID = rs.getString("COMPLETE_QUIZ_ID");
 				int spentTime = rs.getInt("SPENT_TIME_SECONDS");
 				int userScore = rs.getInt("USER_SCORE");
 				String finishDate = rs.getString("FINISH_DATE");
 				DoneQuiz q = new DoneQuiz(userID, getNextIndex(), userScore, finishDate, spentTime);
-				
+
 				compQuizes.add(q);
-				
+
 			}
-		}catch (SQLException e) {
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return compQuizes;
 	}
-	
+
 	public int getNextIndex() {
-		String query = "SELECT * FROM "; 
-		query+= COMPLETE_QUIZ_ID + " WHERE QUIZ_ID = (SELECT MAX(QUIZ_ID) FROM  " + COMPLETE_QUIZ_ID + ")";	
+		String query = "SELECT * FROM ";
+		query += COMPLETE_QUIZ_ID + " WHERE QUIZ_ID = (SELECT MAX(QUIZ_ID) FROM  " + COMPLETE_QUIZ_ID + ")";
 		try {
 			ResultSet rs = upd.executeQuery(query);
-			if (rs.next()) return rs.getInt(2);
-		}catch (SQLException e){
+			if (rs.next())
+				return rs.getInt(2);
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return 1;
 	}
-	
-	public String getQuizName(int id){
+
+	public String getQuizName(int id) {
 		String query = "Select QUIZ_NAME from " + QUIZES_TABLE + " where QUIZ_ID = " + id;
 		try {
 			ResultSet bla = upd.executeQuery(query);
-			bla.next();
-			return bla.getString("QUIZ_NAME");
+			if (bla.next()) {
+				return bla.getString("QUIZ_NAME");
+			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
 	}
-	
+
 	public void closeCon() {
 		try {
 			con.close();
@@ -135,5 +133,5 @@ public class DoneQuizDao extends TableNames {
 			e.printStackTrace();
 		}
 	}
-	
+
 }

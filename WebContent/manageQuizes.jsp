@@ -31,6 +31,7 @@
 			<li><a href="mainPage.jsp">Home</a></li>
 			<li><a href="createQuiz.jsp">Create a quiz</a></li>
 			<li><a href="takeQuiz.jsp">Take a quiz</a></li>
+			<li><a href="topQuiz.jsp">Top quizzes</a></li>
 			<li><a href="manageQuizes.jsp">Manage quizes</a></li>
 			<li><a href="manageUsers.jsp">Manage Users</a></li>
 			<form>

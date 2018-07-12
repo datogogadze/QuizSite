@@ -48,6 +48,8 @@
 			<li class="active"><a href="mainPage.jsp">Home</a></li>
 			<li><a href="createQuiz.jsp">Create a quiz</a></li>
 			<li><a href="takeQuiz.jsp">Take a quiz</a></li>
+						<li><a href="topQuiz.jsp">Top quizzes</a></li>
+			
 			<form action="SearchServlet" method="post">
 				<div class="input-group">
 					<input type="text" class="form-control" name="username"

@@ -61,6 +61,7 @@
 			<li class="active"><a href="mainPage.jsp">Home</a></li>
 			<li><a href="createQuiz.jsp">Create a quiz</a></li>
 			<li><a href="takeQuiz.jsp">Take a quiz</a></li>
+			<li><a href="topQuiz.jsp">Top quizzes</a></li>
 			<%
 				if (type == 1) {
 			%>

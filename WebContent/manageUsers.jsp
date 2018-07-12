@@ -31,11 +31,13 @@
 			<li><a href="mainPage.jsp">Home</a></li>
 			<li><a href="createQuiz.jsp">Create a quiz</a></li>
 			<li><a href="takeQuiz.jsp">Take a quiz</a></li>
+			<li><a href="topQuiz.jsp">Top quizzes</a></li>
 			<li><a href="manageQuizes.jsp">Manage quizes</a></li>
 			<li><a href="manageUsers.jsp">Manage Users</a></li>
 			<form action="SearchServlet" method="post">
 				<div class="input-group">
-					<input type="text" class="form-control" name = "username" placeholder="Search User">
+					<input type="text" class="form-control" name="username"
+						placeholder="Search User">
 					<div class="input-group-btn">
 						<button class="btn btn-default" type="submit">
 							<i class="glyphicon glyphicon-search"></i>
@@ -78,10 +80,10 @@
 							<td><%=u.getId()%></td>
 							<td><a href="<%=userPageLink%>"> <%=u.getUserName()%></a></td>
 							<td><a href="#"> <%
-							 	if (u.getType() == 1)
- 									%> Admin <%
- 								else
- 									%> User
+ 	if (u.getType() == 1)
+ %> Admin <%
+ 	else
+ %> User
 							</a></td>
 							<td><a href="<%=changeStatusLink%>">Change Status</a></td>
 							<td><a href="<%=deleteLink%>">Delete User</a></td>
