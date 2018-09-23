@@ -110,7 +110,7 @@ public class Quiz {
 	
 	@Override
 	public String toString() {
-		return this.quizName;
+		return this.quizName + " " + this.quizDescription + " " + this.quizId + " " + this.quizNumberOfQuestions;
 	}
 	
 }
